@@ -1,5 +1,5 @@
 <resources>
-    <style name="Theme.MindLog" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.MindForce" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
         <item name="colorPrimary">#FFB300</item>
         <item name="colorPrimaryVariant">#FFA000</item>

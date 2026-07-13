@@ -1,6 +1,6 @@
-# MindLog Mobile — App Chef de Département (Android natif / Kotlin)
+# MindForce Mobile — App Chef de Département (Android natif / Kotlin)
 
-Application Android native (Kotlin + Jetpack Compose) pour le rôle **Chef de Département** du projet MindLog.
+Application Android native (Kotlin + Jetpack Compose) pour le rôle **Chef de Département** du projet MindForce.
 
 ## ✅ Fonctionnalités implémentées
 
@@ -34,7 +34,7 @@ Ouvrir `app/src/main/java/com/mindforce/mindlog/data/remote/RetrofitClient.kt` e
 
 > **Note sur le Gradle Wrapper** : le fichier binaire `gradle-wrapper.jar` n'est pas inclus dans cette archive (généré automatiquement, pas de sens à le livrer en source). À l'ouverture du projet, Android Studio proposera de le régénérer automatiquement ; sinon, lancez `gradle wrapper` une fois avec un Gradle installé localement.
 
-1. Ouvrir le dossier `MindLogMobile` dans Android Studio (Koala ou plus récent)
+1. Ouvrir le dossier `MindForceMobile` dans Android Studio (Koala ou plus récent)
 2. Laisser Gradle synchroniser les dépendances (nécessite un accès internet la première fois)
 3. Lancer le backend Spring Boot (voir le zip du backend fourni séparément)
 4. Sélectionner un émulateur (API 26+) ou brancher un téléphone en mode debug USB
@@ -49,7 +49,7 @@ data/
   local/        → SessionManager (DataStore) : token, identité, département
   repository/   → Logique d'appel API + mapping résultat (ApiResult.Success/Error)
 ui/
-  theme/        → Couleurs et thème Compose (charte MindLog)
+  theme/        → Couleurs et thème Compose (charte MindForce)
   components/   → Boutons, bannières, barres de titre réutilisables
   navigation/    → Graphe de navigation Compose
   screens/

@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
-private val Context.dataStore by preferencesDataStore(name = "mindlog_session")
+private val Context.dataStore by preferencesDataStore(name = "mindforce_session")
 
 /**
  * Stocke localement la session du Chef de Département connecté :
@@ -66,6 +66,17 @@ class SessionManager(private val context: Context) {
     suspend fun getDepartementNom(): String? = context.dataStore.data.first()[Keys.DEPARTEMENT_NOM]
 
     suspend fun getDepartementId(): Long? = context.dataStore.data.first()[Keys.DEPARTEMENT_ID]
+
+    suspend fun saveDepartementId(id: Long) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.DEPARTEMENT_ID] = id
+        }
+    }
+
+    suspend fun getEmail(): String? = context.dataStore.data.first()[Keys.EMAIL]
+    suspend fun getRole(): String? = context.dataStore.data.first()[Keys.ROLE]
+    suspend fun getNom(): String? = context.dataStore.data.first()[Keys.NOM]
+    suspend fun getPrenom(): String? = context.dataStore.data.first()[Keys.PRENOM]
 
     suspend fun clear() {
         context.dataStore.edit { it.clear() }

@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="?android:attr/actionBarSize"
         android:background="#F8F9FA"
-        app:title="MindLog"
+        app:title="MindForce"
         app:titleTextColor="#1A1A1A"
         app:titleTextAppearance="@style/TextAppearance.MaterialComponents.Headline6">
 

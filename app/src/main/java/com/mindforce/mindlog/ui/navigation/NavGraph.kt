@@ -10,38 +10,33 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.mindforce.mindlog.MindLogApp
-import com.mindforce.mindlog.ui.screens.home.HomeScreen
+import com.mindforce.mindlog.MindForceApp
 import com.mindforce.mindlog.ui.screens.login.LoginScreen
+import com.mindforce.mindlog.ui.screens.main.MainScreen
 import com.mindforce.mindlog.ui.screens.materiels.MaterielDetailScreen
-import com.mindforce.mindlog.ui.screens.materiels.MaterielsScreen
-import com.mindforce.mindlog.ui.screens.pannes.MesSignalementsScreen
 import com.mindforce.mindlog.ui.screens.pannes.SignalerPanneScreen
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
 
 private object Routes {
     const val LOGIN = "login"
-    const val HOME = "home"
-    const val MATERIELS = "materiels"
+    const val MAIN = "main"
     const val MATERIEL_DETAIL = "materiel/{materielId}"
     const val SIGNALER_PANNE = "signaler/{materielId}"
-    const val MES_SIGNALEMENTS = "mes_signalements"
 
     fun materielDetail(id: String) = "materiel/$id"
     fun signalerPanne(id: String) = "signaler/$id"
 }
 
 @Composable
-fun MindLogNavGraph(app: MindLogApp) {
+fun MindForceNavGraph(app: MindForceApp) {
     val navController: NavHostController = rememberNavController()
 
     // Détermine l'écran de départ selon qu'une session existe déjà
     var startDestination by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(Unit) {
         val token = app.sessionManager.tokenFlow.first()
-        startDestination = if (!token.isNullOrBlank()) Routes.HOME else Routes.LOGIN
+        startDestination = if (!token.isNullOrBlank()) Routes.MAIN else Routes.LOGIN
     }
 
     if (startDestination == null) return // léger écran vide pendant la résolution de session
@@ -52,36 +47,21 @@ fun MindLogNavGraph(app: MindLogApp) {
             LoginScreen(
                 authRepository = app.authRepository,
                 onLoginSuccess = {
-                    navController.navigate(Routes.HOME) {
+                    navController.navigate(Routes.MAIN) {
                         popUpTo(Routes.LOGIN) { inclusive = true }
                     }
                 }
             )
         }
 
-        composable(Routes.HOME) {
-            val scope = rememberCoroutineScope()
-            HomeScreen(
-                sessionManager = app.sessionManager,
-                dashboardRepository = app.dashboardRepository,
-                onOpenMateriels = { navController.navigate(Routes.MATERIELS) },
-                onOpenMesSignalements = { navController.navigate(Routes.MES_SIGNALEMENTS) },
+        composable(Routes.MAIN) {
+            MainScreen(
+                app = app,
                 onLogout = {
-                    scope.launch {
-                        app.authRepository.logout()
-                        navController.navigate(Routes.LOGIN) {
-                            popUpTo(0) { inclusive = true }
-                        }
+                    navController.navigate(Routes.LOGIN) {
+                        popUpTo(0) { inclusive = true }
                     }
-                }
-            )
-        }
-
-        composable(Routes.MATERIELS) {
-            MaterielsScreen(
-                repository = app.materielRepository,
-                sessionManager = app.sessionManager,
-                onBack = { navController.popBackStack() },
+                },
                 onMaterielClick = { id -> navController.navigate(Routes.materielDetail(id)) }
             )
         }
@@ -105,13 +85,6 @@ fun MindLogNavGraph(app: MindLogApp) {
                 sessionManager = app.sessionManager,
                 onBack = { navController.popBackStack() },
                 onSuccess = { navController.popBackStack() }
-            )
-        }
-
-        composable(Routes.MES_SIGNALEMENTS) {
-            MesSignalementsScreen(
-                repository = app.panneRepository,
-                onBack = { navController.popBackStack() }
             )
         }
     }

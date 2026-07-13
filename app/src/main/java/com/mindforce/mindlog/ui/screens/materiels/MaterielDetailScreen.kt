@@ -1,5 +1,6 @@
 package com.mindforce.mindlog.ui.screens.materiels
 
+import android.content.res.ColorStateList
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
@@ -19,6 +20,7 @@ import com.mindforce.mindlog.data.model.PanneResponse
 import com.mindforce.mindlog.data.model.StatutPanne
 import com.mindforce.mindlog.data.repository.MaterielRepository
 import com.mindforce.mindlog.data.repository.PanneRepository
+import com.mindforce.mindlog.ui.theme.*
 
 @Composable
 fun MaterielDetailScreen(
@@ -39,17 +41,17 @@ fun MaterielDetailScreen(
 
     AndroidView(
         factory = { context ->
-            val contextWrapper = ContextThemeWrapper(context, R.style.Theme_MindLog)
+            val contextWrapper = ContextThemeWrapper(context, R.style.Theme_MindForce)
             val view = LayoutInflater.from(contextWrapper).inflate(R.layout.fragment_materiel_detail, null)
             val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
-            toolbar.setNavigationOnClickListener { onBack() }
+            toolbar?.setNavigationOnClickListener { onBack() }
 
             val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewHistory)
-            recyclerView.layoutManager = LinearLayoutManager(context)
-            recyclerView.adapter = PanneAdapter()
+            recyclerView?.layoutManager = LinearLayoutManager(context)
+            recyclerView?.adapter = PanneHistoryAdapter()
 
             val fab = view.findViewById<ExtendedFloatingActionButton>(R.id.fabSignaler)
-            fab.setOnClickListener { onSignalerPanne(materielId) }
+            fab?.setOnClickListener { onSignalerPanne(materielId) }
 
             view
         },
@@ -57,11 +59,15 @@ fun MaterielDetailScreen(
             val progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
             val fab = view.findViewById<ExtendedFloatingActionButton>(R.id.fabSignaler)
             
-            progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+            progressBar?.visibility = if (state.isLoading) View.VISIBLE else View.GONE
             
             state.materiel?.let { materiel ->
-                view.findViewById<Toolbar>(R.id.toolbar).title = "${materiel.marque} ${materiel.modele}"
-                view.findViewById<TextView>(R.id.materielId).text = materiel.id
+                val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
+                if (toolbar != null) {
+                    toolbar.title = "${materiel.marque} ${materiel.modele}"
+                }
+                
+                view.findViewById<TextView>(R.id.materielId)?.text = materiel.id
                 
                 // Rows info
                 updateInfoRow(view.findViewById(R.id.rowType), "Type", materiel.typeMaterielNom ?: "-")
@@ -70,45 +76,61 @@ fun MaterielDetailScreen(
                 updateInfoRow(view.findViewById(R.id.rowAcquisition), "Date d'acquisition", materiel.dateAcquisition ?: "-")
 
                 val etatBadge = view.findViewById<TextView>(R.id.etatBadge)
-                val (label, colorRes) = when (materiel.etatActuel) {
-                    EtatMateriel.BON -> "Bon" to android.R.color.holo_green_dark
-                    EtatMateriel.USAGE -> "Usagé" to android.R.color.holo_orange_dark
-                    EtatMateriel.EN_PANNE -> "En panne" to android.R.color.holo_red_dark
-                    EtatMateriel.DECLASSE -> "Déclassé" to android.R.color.darker_gray
+                if (etatBadge != null) {
+                    val (label, color) = when (materiel.etatActuel) {
+                        EtatMateriel.BON -> "Bon" to StateBon
+                        EtatMateriel.USAGE -> "Usagé" to StateUsage
+                        EtatMateriel.EN_PANNE -> "En panne" to StateEnPanne
+                        EtatMateriel.DECLASSE -> "Déclassé" to StateDeclasse
+                        null -> "Inconnu" to android.graphics.Color.GRAY
+                    }
+                    val badgeColor = if (color is androidx.compose.ui.graphics.Color) {
+                        val argb = (color.alpha * 255).toInt() shl 24 or 
+                                   (color.red * 255).toInt() shl 16 or 
+                                   (color.green * 255).toInt() shl 8 or 
+                                   (color.blue * 255).toInt()
+                        argb
+                    } else {
+                        color as Int
+                    }
+                    
+                    etatBadge.text = label
+                    etatBadge.setTextColor(badgeColor)
+                    etatBadge.backgroundTintList = ColorStateList.valueOf(badgeColor).withAlpha(30)
                 }
-                etatBadge.text = label
-                etatBadge.setTextColor(view.context.getColor(colorRes))
-                etatBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(view.context.getColor(colorRes)).withAlpha(40)
 
-                fab.visibility = if (materiel.etatActuel != EtatMateriel.DECLASSE) View.VISIBLE else View.GONE
+                fab?.visibility = if (materiel.etatActuel != null && materiel.etatActuel != EtatMateriel.DECLASSE) View.VISIBLE else View.GONE
             }
 
             val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewHistory)
             val emptyHistoryText = view.findViewById<TextView>(R.id.emptyHistoryText)
             
             if (state.historiquePannes.isEmpty() && !state.isLoading) {
-                recyclerView.visibility = View.GONE
-                emptyHistoryText.visibility = View.VISIBLE
+                recyclerView?.visibility = View.GONE
+                emptyHistoryText?.visibility = View.VISIBLE
             } else {
-                recyclerView.visibility = View.VISIBLE
-                emptyHistoryText.visibility = View.GONE
-                (recyclerView.adapter as? PanneAdapter)?.submitList(state.historiquePannes)
+                recyclerView?.visibility = View.VISIBLE
+                emptyHistoryText?.visibility = View.GONE
+                (recyclerView?.adapter as? PanneHistoryAdapter)?.submitList(state.historiquePannes)
             }
         }
     )
 }
 
-private fun updateInfoRow(row: View, label: String, value: String) {
-    row.findViewById<TextView>(R.id.label).text = label
-    row.findViewById<TextView>(R.id.value).text = value
+private fun updateInfoRow(row: View?, label: String, value: String) {
+    if (row == null) return
+    row.findViewById<TextView>(R.id.label)?.text = label
+    row.findViewById<TextView>(R.id.value)?.text = value
 }
 
-class PanneAdapter : RecyclerView.Adapter<PanneAdapter.ViewHolder>() {
+class PanneHistoryAdapter : RecyclerView.Adapter<PanneHistoryAdapter.ViewHolder>() {
     private var items = listOf<PanneResponse>()
 
     fun submitList(newItems: List<PanneResponse>) {
-        items = newItems
-        notifyDataSetChanged()
+        if (items != newItems) {
+            items = newItems
+            notifyDataSetChanged()
+        }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -124,19 +146,27 @@ class PanneAdapter : RecyclerView.Adapter<PanneAdapter.ViewHolder>() {
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         fun bind(panne: PanneResponse) {
-            itemView.findViewById<TextView>(R.id.panneDate).text = panne.dateSignalement ?: "-"
+            itemView.findViewById<TextView>(R.id.panneDate).text = panne.dateSignalement?.take(10) ?: "-"
             itemView.findViewById<TextView>(R.id.panneDescription).text = panne.descriptionPanne
             
             val statutBadge = itemView.findViewById<TextView>(R.id.statutBadge)
-            val (label, colorRes) = when (panne.statutEtape) {
-                StatutPanne.SIGNALE -> "Signalée" to android.R.color.holo_orange_dark
-                StatutPanne.EN_REPARATION -> "En réparation" to android.R.color.holo_red_dark
-                StatutPanne.RESOLUE -> "Résolue" to android.R.color.holo_green_dark
-                StatutPanne.DECLASSE -> "Déclassé" to android.R.color.darker_gray
+            if (statutBadge != null) {
+                val (label, color) = when (panne.statutEtape) {
+                    StatutPanne.SIGNALE -> "Signalée" to StateUsage
+                    StatutPanne.EN_REPARATION -> "En réparation" to StateEnPanne
+                    StatutPanne.RESOLUE -> "Résolue" to StateBon
+                    StatutPanne.DECLASSE -> "Déclassé" to StateDeclasse
+                }
+                
+                val badgeColor = (color.alpha * 255).toInt() shl 24 or 
+                                 (color.red * 255).toInt() shl 16 or 
+                                 (color.green * 255).toInt() shl 8 or 
+                                 (color.blue * 255).toInt()
+
+                statutBadge.text = label
+                statutBadge.setTextColor(badgeColor)
+                statutBadge.backgroundTintList = ColorStateList.valueOf(badgeColor).withAlpha(40)
             }
-            statutBadge.text = label
-            statutBadge.setTextColor(itemView.context.getColor(colorRes))
-            statutBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(itemView.context.getColor(colorRes)).withAlpha(40)
         }
     }
 }

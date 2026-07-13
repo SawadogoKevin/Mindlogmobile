@@ -28,23 +28,29 @@ interface ApiService {
 
     /** Matériels affectés au département du chef connecté */
     @GET("api/affectations/departement/{departementId}/actives")
-    suspend fun getMesMateriels(@Path("departementId") departementId: Long): Response<List<MaterielResponse>>
+    suspend fun getMesMateriels(@Path("departementId") departementId: Long): Response<List<AffectationMaterielResponse>>
 
     @GET("api/materiels/{id}")
     suspend fun getMateriel(@Path("id") id: String): Response<MaterielResponse>
+
+    // ===== PERSONNELS =====
+
+    @GET("api/personnels/departement/{departementId}")
+    suspend fun getPersonnelsParDepartement(@Path("departementId") departementId: Long): Response<List<PersonnelResponse>>
 
     // ===== PANNES (Chef de Département) =====
 
     /**
      * Signale une panne — multipart/form-data
-     * "data"  : JSON (PanneRequest)
-     * "photo" : photo justificative (obligatoire, prise par l'appareil photo ou choisie en galerie)
      */
     @Multipart
     @POST("api/pannes")
     suspend fun signalerPanne(
-        @Part("data") data: RequestBody,
-        @Part photo: MultipartBody.Part
+        @Part("materielId") materielId: RequestBody,
+        @Part("typePanne") typePanne: RequestBody,
+        @Part("descriptionPanne") descriptionPanne: RequestBody,
+        @Part("signaleParId") signaleParId: RequestBody,
+        @Part justificatifs: List<MultipartBody.Part>
     ): Response<PanneResponse>
 
     @GET("api/pannes")

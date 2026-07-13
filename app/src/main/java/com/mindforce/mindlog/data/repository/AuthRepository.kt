@@ -20,7 +20,11 @@ class AuthRepository(
         return try {
             val response = api.login(LoginRequest(email, password))
             if (response.isSuccessful) {
-                ApiResult.Success(response.body()?.message ?: "Code envoyé par email")
+                val body = response.body()
+                body?.departementId?.let { 
+                    sessionManager.saveDepartementId(it) 
+                }
+                ApiResult.Success(body?.message ?: "Code envoyé par email")
             } else {
                 ApiResult.Error(NetworkUtils.extractErrorMessage(response.errorBody()?.string()))
             }

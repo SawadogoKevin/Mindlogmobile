@@ -1,12 +1,13 @@
 package com.mindforce.mindlog.data.repository
 
+import com.mindforce.mindlog.data.model.AffectationMaterielResponse
 import com.mindforce.mindlog.data.model.MaterielResponse
 import com.mindforce.mindlog.data.remote.ApiService
 import com.mindforce.mindlog.data.remote.NetworkUtils
 
 class MaterielRepository(private val api: ApiService) {
 
-    suspend fun getMesMateriels(departementId: Long): ApiResult<List<MaterielResponse>> {
+    suspend fun getMesMateriels(departementId: Long): ApiResult<List<AffectationMaterielResponse>> {
         return try {
             val response = api.getMesMateriels(departementId)
             if (response.isSuccessful) {

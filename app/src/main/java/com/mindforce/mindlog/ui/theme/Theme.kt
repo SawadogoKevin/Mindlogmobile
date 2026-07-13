@@ -10,7 +10,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
-private val MindLogColorScheme = lightColorScheme(
+private val MindForceColorScheme = lightColorScheme(
     primary = MindOrange,
     onPrimary = MindBlack,
     secondary = MindBlack,
@@ -23,7 +23,7 @@ private val MindLogColorScheme = lightColorScheme(
     onError = Color.White,
 )
 
-private val MindLogTypography = Typography(
+private val MindForceTypography = Typography(
     titleLarge = TextStyle(fontWeight = FontWeight.Bold, fontSize = 22.sp, color = MindBlack),
     titleMedium = TextStyle(fontWeight = FontWeight.SemiBold, fontSize = 18.sp, color = MindBlack),
     bodyLarge = TextStyle(fontSize = 16.sp, color = MindBlack),
@@ -32,11 +32,11 @@ private val MindLogTypography = Typography(
 )
 
 @Composable
-fun MindLogTheme(content: @Composable () -> Unit) {
+fun MindForceTheme(content: @Composable () -> Unit) {
     // La charte n'impose qu'un thème clair (orange / blanc / noir)
     MaterialTheme(
-        colorScheme = MindLogColorScheme,
-        typography = MindLogTypography,
+        colorScheme = MindForceColorScheme,
+        typography = MindForceTypography,
         content = content
     )
 }

@@ -1,7 +1,12 @@
 package com.mindforce.mindlog.data.model
 
+import com.google.gson.annotations.SerializedName
+
 enum class EtatMateriel {
-    BON, USAGE, DECLASSE, EN_PANNE
+    @SerializedName("BON") BON,
+    @SerializedName("USAGE") USAGE,
+    @SerializedName("DECLASSE") DECLASSE,
+    @SerializedName("EN_PANNE") EN_PANNE
 }
 
 data class MaterielResponse(
@@ -12,8 +17,21 @@ data class MaterielResponse(
     val dateAcquisition: String?,
     val dateDebutUtilisation: String?,
     val fournisseur: String?,
-    val etatActuel: EtatMateriel,
+    @SerializedName("etat_actuel")
+    val etatActuel: EtatMateriel?,
     val typeMaterielId: Long?,
     val typeMaterielNom: String?,
     val dateCreation: String?
+)
+
+data class AffectationMaterielResponse(
+    val id: Long,
+    val materielId: String,
+    val materielMarque: String?,
+    val materielModele: String?,
+    @SerializedName("etat_actuel")
+    val materielEtatActuel: EtatMateriel?,
+    val typeAffectation: String?,
+    val departementNom: String?,
+    val active: Boolean
 )

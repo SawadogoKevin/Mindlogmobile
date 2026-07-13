@@ -4,7 +4,6 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mindforce.mindlog.data.local.SessionManager
-import com.mindforce.mindlog.data.model.PanneRequest
 import com.mindforce.mindlog.data.model.TypePanne
 import com.mindforce.mindlog.data.repository.ApiResult
 import com.mindforce.mindlog.data.repository.PanneRepository
@@ -13,12 +12,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import java.io.File
 
+data class PhotoItem(
+    val uri: Uri,
+    val file: File
+)
+
 data class SignalerPanneUiState(
     val materielId: String = "",
     val description: String = "",
     val typePanne: TypePanne = TypePanne.REPARABLE,
-    val photoUri: Uri? = null,
-    val photoFile: File? = null,
+    val photos: List<PhotoItem> = emptyList(),
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null,
     val success: Boolean = false
@@ -43,11 +46,15 @@ class SignalerPanneViewModel(
 
     /** Appelé après capture caméra ou sélection galerie, une fois le fichier local prêt */
     fun onPhotoReady(uri: Uri, file: File) {
-        _uiState.value = _uiState.value.copy(photoUri = uri, photoFile = file, errorMessage = null)
+        val currentPhotos = _uiState.value.photos.toMutableList()
+        currentPhotos.add(PhotoItem(uri, file))
+        _uiState.value = _uiState.value.copy(photos = currentPhotos, errorMessage = null)
     }
 
-    fun clearPhoto() {
-        _uiState.value = _uiState.value.copy(photoUri = null, photoFile = null)
+    fun removePhoto(photoItem: PhotoItem) {
+        val currentPhotos = _uiState.value.photos.toMutableList()
+        currentPhotos.remove(photoItem)
+        _uiState.value = _uiState.value.copy(photos = currentPhotos)
     }
 
     fun submit() {
@@ -55,10 +62,6 @@ class SignalerPanneViewModel(
 
         if (state.description.isBlank()) {
             _uiState.value = state.copy(errorMessage = "Veuillez décrire la panne")
-            return
-        }
-        if (state.photoFile == null) {
-            _uiState.value = state.copy(errorMessage = "Une photo justificative est obligatoire (prenez une photo ou choisissez-en une dans la galerie)")
             return
         }
 
@@ -71,16 +74,21 @@ class SignalerPanneViewModel(
                 return@launch
             }
 
-            val request = PanneRequest(
-                descriptionPanne = state.description.trim(),
-                typePanne = state.typePanne,
+            val result = panneRepository.signaler(
                 materielId = state.materielId,
-                signaleParId = userId
+                typePanne = state.typePanne.name,
+                description = state.description.trim(),
+                userId = userId,
+                photoFiles = state.photos.map { it.file }
             )
 
-            when (val result = panneRepository.signaler(request, state.photoFile)) {
-                is ApiResult.Success -> _uiState.value = _uiState.value.copy(isSubmitting = false, success = true)
-                is ApiResult.Error -> _uiState.value = _uiState.value.copy(isSubmitting = false, errorMessage = result.message)
+            when (result) {
+                is ApiResult.Success -> {
+                    _uiState.value = _uiState.value.copy(isSubmitting = false, success = true)
+                }
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isSubmitting = false, errorMessage = result.message)
+                }
             }
         }
     }

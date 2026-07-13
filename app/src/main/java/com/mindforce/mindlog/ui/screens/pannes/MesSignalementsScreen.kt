@@ -1,26 +1,36 @@
 package com.mindforce.mindlog.ui.screens.pannes
 
-import android.view.ContextThemeWrapper
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ProgressBar
-import android.widget.TextView
-import androidx.appcompat.widget.Toolbar
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.mindforce.mindlog.R
 import com.mindforce.mindlog.data.model.PanneResponse
 import com.mindforce.mindlog.data.model.StatutPanne
 import com.mindforce.mindlog.data.repository.PanneRepository
+import com.mindforce.mindlog.ui.components.EmptyState
+import com.mindforce.mindlog.ui.components.LoadingState
+import com.mindforce.mindlog.ui.components.MindForceTopBar
+import com.mindforce.mindlog.ui.theme.*
 
 @Composable
 fun MesSignalementsScreen(
     repository: PanneRepository,
-    onBack: () -> Unit
+    onBack: (() -> Unit)? = null
 ) {
     val viewModel: MesSignalementsViewModel = viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
@@ -30,74 +40,155 @@ fun MesSignalementsScreen(
     })
     val state by viewModel.uiState.collectAsState()
 
-    AndroidView(
-        factory = { context ->
-            val contextWrapper = ContextThemeWrapper(context, R.style.Theme_MindLog)
-            val view = LayoutInflater.from(contextWrapper).inflate(R.layout.fragment_mes_signalements, null)
-            val toolbar = view.findViewById<Toolbar>(R.id.toolbar)
-            toolbar.setNavigationOnClickListener { onBack() }
+    Column(modifier = Modifier.fillMaxSize().background(MindWhite)) {
+        MindForceTopBar(
+            title = "Pannes",
+            onBack = onBack
+        )
 
-            val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewSignalements)
-            recyclerView.layoutManager = LinearLayoutManager(context)
-            recyclerView.adapter = MesSignalementsAdapter()
-
-            view
-        },
-        update = { view ->
-            val progressBar = view.findViewById<ProgressBar>(R.id.progressBar)
-            val errorBanner = view.findViewById<TextView>(R.id.errorBanner)
-            val emptyStateText = view.findViewById<TextView>(R.id.emptyStateText)
-            val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewSignalements)
-
-            progressBar.visibility = if (state.isLoading) View.VISIBLE else View.GONE
+        // Filter Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = if (state.showOnlyActive) "Pannes en cours" else "Historique",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MindBlack
+            )
             
-            errorBanner.visibility = if (state.errorMessage != null) View.VISIBLE else View.GONE
-            errorBanner.text = state.errorMessage
-
-            val showList = !state.isLoading && state.errorMessage == null && state.pannes.isNotEmpty()
-            recyclerView.visibility = if (showList) View.VISIBLE else View.GONE
-            emptyStateText.visibility = if (!state.isLoading && state.errorMessage == null && state.pannes.isEmpty()) View.VISIBLE else View.GONE
-
-            (recyclerView.adapter as? MesSignalementsAdapter)?.submitList(state.pannes)
+            Button(
+                onClick = { viewModel.toggleFilter() },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (state.showOnlyActive) MindBlack else MindOrange,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(12.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Icon(
+                    Icons.Default.History, 
+                    contentDescription = null, 
+                    modifier = Modifier.size(18.dp),
+                    tint = Color.White
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = if (state.showOnlyActive) "🕘 Historique" else "🔧 Pannes actives",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
         }
-    )
+
+        if (state.isLoading) {
+            LoadingState()
+        } else if (state.errorMessage != null) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(state.errorMessage!!, color = MindRed)
+            }
+        } else if (state.filteredPannes.isEmpty()) {
+            EmptyState(message = if (state.showOnlyActive) "Aucune panne en cours" else "Votre historique est vide")
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 32.dp, start = 20.dp, end = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(state.filteredPannes) { panne ->
+                    ModernPanneCard(panne)
+                }
+            }
+        }
+    }
 }
 
-class MesSignalementsAdapter : RecyclerView.Adapter<MesSignalementsAdapter.ViewHolder>() {
-    private var items = listOf<PanneResponse>()
-
-    fun submitList(newItems: List<PanneResponse>) {
-        items = newItems
-        notifyDataSetChanged()
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_mes_signalements, parent, false)
-        return ViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(items[position])
-    }
-
-    override fun getItemCount() = items.size
-
-    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        fun bind(panne: PanneResponse) {
-            itemView.findViewById<TextView>(R.id.materielName).text = "${panne.materielMarque ?: ""} ${panne.materielModele ?: ""}".trim()
-            itemView.findViewById<TextView>(R.id.panneDescription).text = panne.descriptionPanne
-            itemView.findViewById<TextView>(R.id.panneDate).text = panne.dateSignalement ?: "-"
-            
-            val statutBadge = itemView.findViewById<TextView>(R.id.statutBadge)
-            val (label, colorRes) = when (panne.statutEtape) {
-                StatutPanne.SIGNALE -> "Signalée" to android.R.color.holo_orange_dark
-                StatutPanne.EN_REPARATION -> "En réparation" to android.R.color.holo_red_dark
-                StatutPanne.RESOLUE -> "Résolue" to android.R.color.holo_green_dark
-                StatutPanne.DECLASSE -> "Déclassé" to android.R.color.darker_gray
+@Composable
+fun ModernPanneCard(panne: PanneResponse) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(MindBlack.copy(alpha = 0.05f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Build, contentDescription = null, tint = MindBlack, modifier = Modifier.size(22.dp))
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "${panne.materielMarque ?: "Matériel"} ${panne.materielModele ?: ""}".trim(),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MindBlack
+                    )
+                    Text(
+                        text = "ID: ${panne.materielId ?: "-"}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.Gray
+                    )
+                }
+                
+                PanneStatutBadge(panne.statutEtape)
             }
-            statutBadge.text = label
-            statutBadge.setTextColor(itemView.context.getColor(colorRes))
-            statutBadge.backgroundTintList = android.content.res.ColorStateList.valueOf(itemView.context.getColor(colorRes)).withAlpha(40)
+
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text(
+                text = panne.descriptionPanne,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MindBlack,
+                maxLines = 3
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp), color = Color.LightGray.copy(alpha = 0.3f))
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.CalendarToday, contentDescription = null, tint = Color.Gray, modifier = Modifier.size(14.dp))
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Signalé le : ${panne.dateSignalement?.take(10) ?: "-"}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.Gray,
+                    fontWeight = FontWeight.Medium
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun PanneStatutBadge(statut: StatutPanne) {
+    val (label, color) = when (statut) {
+        StatutPanne.SIGNALE -> "SIGNALÉE" to StateUsage
+        StatutPanne.EN_REPARATION -> "RÉPARATION" to StateEnPanne
+        StatutPanne.RESOLUE -> "RÉSOLUE" to StateBon
+        StatutPanne.DECLASSE -> "DÉCLASSÉ" to StateDeclasse
+    }
+
+    Surface(
+        color = color.copy(alpha = 0.12f),
+        shape = RoundedCornerShape(8.dp)
+    ) {
+        Text(
+            text = label,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            color = color,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.ExtraBold
+        )
     }
 }

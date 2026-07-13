@@ -2,7 +2,7 @@ package com.mindforce.mindlog.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// Charte graphique MindLog — à utiliser uniquement, sauf exception
+// Charte graphique MindForce — à utiliser uniquement, sauf exception
 // (ex : bouton logout / suppression en rouge)
 val MindOrange = Color(0xFFF9AA00)
 val MindWhite = Color(0xFFF8F5EE)

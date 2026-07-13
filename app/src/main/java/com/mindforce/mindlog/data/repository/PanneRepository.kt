@@ -14,24 +14,40 @@ import java.io.File
 class PanneRepository(private val api: ApiService) {
 
     /**
-     * Signale une panne avec sa photo justificative obligatoire.
-     * @param photoFile fichier image (pris par la caméra ou choisi dans la galerie, déjà copié en local)
+     * Signale une panne avec ses photos justificatives (0 à plusieurs).
      */
-    suspend fun signaler(request: PanneRequest, photoFile: File): ApiResult<PanneResponse> {
+    suspend fun signaler(
+        materielId: String,
+        typePanne: String,
+        description: String,
+        userId: Long,
+        photoFiles: List<File>
+    ): ApiResult<PanneResponse> {
         return try {
-            val json = Gson().toJson(request)
-            val dataBody = json.toRequestBody("application/json".toMediaTypeOrNull())
+            val materielIdBody = materielId.toRequestBody("text/plain".toMediaTypeOrNull())
+            val typePanneBody = typePanne.toRequestBody("text/plain".toMediaTypeOrNull())
+            val descriptionBody = description.toRequestBody("text/plain".toMediaTypeOrNull())
+            val signaleParIdBody = userId.toString().toRequestBody("text/plain".toMediaTypeOrNull())
 
-            val mimeType = when (photoFile.extension.lowercase()) {
-                "png" -> "image/png"
-                "webp" -> "image/webp"
-                "heic" -> "image/heic"
-                else -> "image/jpeg"
+            val photoParts = photoFiles.map { file ->
+                val mimeType = when (file.extension.lowercase()) {
+                    "png" -> "image/png"
+                    "webp" -> "image/webp"
+                    "heic" -> "image/heic"
+                    else -> "image/jpeg"
+                }
+                val body = file.asRequestBody(mimeType.toMediaTypeOrNull())
+                MultipartBody.Part.createFormData("justificatifs", file.name, body)
             }
-            val photoBody = photoFile.asRequestBody(mimeType.toMediaTypeOrNull())
-            val photoPart = MultipartBody.Part.createFormData("photo", photoFile.name, photoBody)
 
-            val response = api.signalerPanne(dataBody, photoPart)
+            val response = api.signalerPanne(
+                materielIdBody,
+                typePanneBody,
+                descriptionBody,
+                signaleParIdBody,
+                photoParts
+            )
+
             if (response.isSuccessful && response.body() != null) {
                 ApiResult.Success(response.body()!!)
             } else {

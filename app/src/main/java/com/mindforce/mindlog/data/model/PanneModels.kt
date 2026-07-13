@@ -21,7 +21,7 @@ data class PanneResponse(
     val dateSignalement: String?,
     val descriptionPanne: String,
     val typePanne: TypePanne,
-    val justificatif: String?,
+    val justificatifs: List<String>?,
     val dateResolution: String?,
     val statutEtape: StatutPanne,
     val materielId: String?,

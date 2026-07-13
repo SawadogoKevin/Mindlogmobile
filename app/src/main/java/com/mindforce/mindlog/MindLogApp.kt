@@ -8,8 +8,9 @@ import com.mindforce.mindlog.data.repository.AuthRepository
 import com.mindforce.mindlog.data.repository.DashboardRepository
 import com.mindforce.mindlog.data.repository.MaterielRepository
 import com.mindforce.mindlog.data.repository.PanneRepository
+import com.mindforce.mindlog.data.repository.PersonnelRepository
 
-class MindLogApp : Application() {
+class MindForceApp : Application() {
 
     lateinit var sessionManager: SessionManager
         private set
@@ -23,6 +24,8 @@ class MindLogApp : Application() {
         private set
     lateinit var dashboardRepository: DashboardRepository
         private set
+    lateinit var personnelRepository: PersonnelRepository
+        private set
 
     override fun onCreate() {
         super.onCreate()
@@ -32,5 +35,6 @@ class MindLogApp : Application() {
         materielRepository = MaterielRepository(apiService)
         panneRepository = PanneRepository(apiService)
         dashboardRepository = DashboardRepository(apiService)
+        personnelRepository = PersonnelRepository(apiService)
     }
 }

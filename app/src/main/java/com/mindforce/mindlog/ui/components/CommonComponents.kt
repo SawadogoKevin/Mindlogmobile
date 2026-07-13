@@ -19,7 +19,7 @@ import com.mindforce.mindlog.ui.theme.MindWhite
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MindLogTopBar(
+fun MindForceTopBar(
     title: String,
     onBack: (() -> Unit)? = null,
     onLogout: (() -> Unit)? = null

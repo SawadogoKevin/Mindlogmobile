@@ -3,7 +3,8 @@ package com.mindforce.mindlog.ui.screens.materiels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.mindforce.mindlog.data.local.SessionManager
-import com.mindforce.mindlog.data.model.MaterielResponse
+import com.mindforce.mindlog.data.model.AffectationMaterielResponse
+import com.mindforce.mindlog.data.model.EtatMateriel
 import com.mindforce.mindlog.data.repository.ApiResult
 import com.mindforce.mindlog.data.repository.MaterielRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,8 +12,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 data class MaterielsUiState(
-    val isLoading: Boolean = true,
-    val materiels: List<MaterielResponse> = emptyList(),
+    val isLoading: Boolean = false,
+    val allMateriels: List<AffectationMaterielResponse> = emptyList(),
+    val filteredMateriels: List<AffectationMaterielResponse> = emptyList(),
+    val showOnlyAvailable: Boolean = true,
     val errorMessage: String? = null
 )
 
@@ -32,14 +35,39 @@ class MaterielsViewModel(
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
             val deptId = sessionManager.getDepartementId()
-            if (deptId == null) {
-                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = "ID du département non trouvé")
+            if (deptId == null || deptId == 0L) {
+                _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = "Département non assigné")
                 return@launch
             }
+
             when (val result = repository.getMesMateriels(deptId)) {
-                is ApiResult.Success -> _uiState.value = _uiState.value.copy(isLoading = false, materiels = result.data)
-                is ApiResult.Error -> _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = result.message)
+                is ApiResult.Success -> {
+                    val materiels = result.data
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        allMateriels = materiels
+                    )
+                    applyFilter()
+                }
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = result.message)
+                }
             }
         }
+    }
+
+    fun toggleFilter() {
+        _uiState.value = _uiState.value.copy(showOnlyAvailable = !_uiState.value.showOnlyAvailable)
+        applyFilter()
+    }
+
+    private fun applyFilter() {
+        val state = _uiState.value
+        val filtered = if (state.showOnlyAvailable) {
+            state.allMateriels.filter { it.materielEtatActuel == EtatMateriel.BON }
+        } else {
+            state.allMateriels.filter { it.materielEtatActuel != EtatMateriel.BON }
+        }
+        _uiState.value = _uiState.value.copy(filteredMateriels = filtered)
     }
 }

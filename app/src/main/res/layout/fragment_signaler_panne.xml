@@ -137,42 +137,19 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="28dp"
-                android:text="Photo justificative *"
+                android:text="Justificatifs (photo caméra ou galerie)"
                 android:textColor="#1A1A1A"
                 android:textStyle="bold"
                 android:textSize="14sp" />
 
-            <!-- Conteneur d'image arrondi moderne -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/photoContainer"
+            <!-- Liste des photos sélectionnées -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewPhotos"
                 android:layout_width="match_parent"
-                android:layout_height="220dp"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:visibility="gone"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp">
-
-                <FrameLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <ImageView
-                        android:id="@+id/photoPreview"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:scaleType="centerCrop" />
-
-                    <ImageButton
-                        android:id="@+id/removePhotoButton"
-                        android:layout_width="38dp"
-                        android:layout_height="38dp"
-                        android:layout_gravity="top|end"
-                        android:layout_margin="12dp"
-                        android:background="@drawable/circle_black_alpha"
-                        android:src="@android:drawable/ic_menu_close_clear_cancel"
-                        app:tint="#FFFFFF" />
-                </FrameLayout>
-            </androidx.cardview.widget.CardView>
+                android:orientation="horizontal"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
             <!-- Boutons d'action Média -->
             <LinearLayout

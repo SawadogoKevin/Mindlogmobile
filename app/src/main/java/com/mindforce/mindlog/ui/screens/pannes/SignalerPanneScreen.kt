@@ -1,13 +1,11 @@
 package com.mindforce.mindlog.ui.screens.pannes
 
+import android.Manifest
+import android.os.Build
 import android.view.LayoutInflater
 import android.view.View
-import android.widget.Button
-import android.widget.FrameLayout
-import android.widget.ImageButton
-import android.widget.ImageView
-import android.widget.TextView
-import android.widget.Toast
+import android.view.ViewGroup
+import android.widget.*
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.widget.Toolbar
@@ -16,6 +14,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.widget.doAfterTextChanged
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.textfield.TextInputEditText
@@ -54,19 +54,40 @@ fun SignalerPanneScreen(
         }
     }
 
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris ->
+        uris.forEach { uri ->
             val file = PhotoFileUtil.copyContentUriToFile(context, uri)
             if (file != null) {
                 viewModel.onPhotoReady(uri, file)
-            } else {
-                Toast.makeText(context, "Impossible de charger cette image", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { perms ->
+        val cameraGranted = perms[Manifest.permission.CAMERA] ?: false
+        if (cameraGranted) {
+            val file = PhotoFileUtil.createCameraOutputFile(context)
+            pendingCameraFile = file
+            val uri = PhotoFileUtil.uriForFile(context, file)
+            cameraLauncher.launch(uri)
+        } else {
+            Toast.makeText(context, "Permission caméra requise", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val galleryPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+        if (isGranted) {
+            galleryLauncher.launch("image/*")
+        } else {
+            Toast.makeText(context, "Permission stockage requise", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     LaunchedEffect(state.success) {
-        if (state.success) onSuccess()
+        if (state.success) {
+            Toast.makeText(context, "Signalement envoyé avec succès", Toast.LENGTH_LONG).show()
+            onSuccess()
+        }
     }
 
     AndroidView(
@@ -77,7 +98,11 @@ fun SignalerPanneScreen(
             toolbar.setNavigationOnClickListener { onBack() }
 
             val descriptionInput = view.findViewById<TextInputEditText>(R.id.descriptionInput)
-            descriptionInput.doAfterTextChanged { viewModel.onDescriptionChange(it.toString()) }
+            descriptionInput.doAfterTextChanged { 
+                if (it.toString() != state.description) {
+                    viewModel.onDescriptionChange(it.toString()) 
+                }
+            }
 
             val toggleGroup = view.findViewById<MaterialButtonToggleGroup>(R.id.typeToggleGroup)
             toggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
@@ -88,18 +113,21 @@ fun SignalerPanneScreen(
             }
 
             view.findViewById<Button>(R.id.cameraButton).setOnClickListener {
-                val file = PhotoFileUtil.createCameraOutputFile(context)
-                pendingCameraFile = file
-                val uri = PhotoFileUtil.uriForFile(context, file)
-                cameraLauncher.launch(uri)
+                permissionLauncher.launch(arrayOf(Manifest.permission.CAMERA))
             }
 
             view.findViewById<Button>(R.id.galleryButton).setOnClickListener {
-                galleryLauncher.launch("image/*")
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    galleryPermissionLauncher.launch(Manifest.permission.READ_MEDIA_IMAGES)
+                } else {
+                    galleryPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
             }
 
-            view.findViewById<ImageButton>(R.id.removePhotoButton).setOnClickListener {
-                viewModel.clearPhoto()
+            val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewPhotos)
+            recyclerView.layoutManager = LinearLayoutManager(ctx, LinearLayoutManager.HORIZONTAL, false)
+            recyclerView.adapter = SelectedPhotoAdapter { photoItem ->
+                viewModel.removePhoto(photoItem)
             }
 
             view.findViewById<Button>(R.id.submitButton).setOnClickListener {
@@ -115,20 +143,18 @@ fun SignalerPanneScreen(
             errorBanner.visibility = if (state.errorMessage != null) View.VISIBLE else View.GONE
             errorBanner.text = state.errorMessage
 
-            val photoContainer = view.findViewById<FrameLayout>(R.id.photoContainer)
-            val photoPreview = view.findViewById<ImageView>(R.id.photoPreview)
-            if (state.photoUri != null) {
-                photoContainer.visibility = View.VISIBLE
-                photoPreview.load(state.photoUri)
-            } else {
-                photoContainer.visibility = View.GONE
+            val descriptionInput = view.findViewById<TextInputEditText>(R.id.descriptionInput)
+            if (descriptionInput.text.toString() != state.description) {
+                descriptionInput.setText(state.description)
             }
+
+            val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewPhotos)
+            (recyclerView.adapter as? SelectedPhotoAdapter)?.submitList(state.photos)
 
             val submitButton = view.findViewById<Button>(R.id.submitButton)
             submitButton.isEnabled = !state.isSubmitting
-            submitButton.text = if (state.isSubmitting) "Envoi..." else "Signaler la panne"
-
-            // Update toggle state if changed from outside (unlikely here but good practice)
+            submitButton.text = if (state.isSubmitting) "Envoi en cours..." else "Signaler la panne"
+            
             val toggleGroup = view.findViewById<MaterialButtonToggleGroup>(R.id.typeToggleGroup)
             val expectedId = if (state.typePanne == TypePanne.REPARABLE) R.id.buttonReparable else R.id.buttonNonReparable
             if (toggleGroup.checkedButtonId != expectedId) {
@@ -136,4 +162,33 @@ fun SignalerPanneScreen(
             }
         }
     )
+}
+
+class SelectedPhotoAdapter(private val onRemove: (PhotoItem) -> Unit) : RecyclerView.Adapter<SelectedPhotoAdapter.ViewHolder>() {
+    private var items = listOf<PhotoItem>()
+
+    fun submitList(newItems: List<PhotoItem>) {
+        if (items != newItems) {
+            items = newItems
+            notifyDataSetChanged()
+        }
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_selected_photo, parent, false)
+        return ViewHolder(view)
+    }
+
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+        holder.bind(items[position], onRemove)
+    }
+
+    override fun getItemCount() = items.size
+
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        fun bind(photoItem: PhotoItem, onRemove: (PhotoItem) -> Unit) {
+            itemView.findViewById<ImageView>(R.id.photoPreview).load(photoItem.uri)
+            itemView.findViewById<ImageButton>(R.id.removeButton).setOnClickListener { onRemove(photoItem) }
+        }
+    }
 }
