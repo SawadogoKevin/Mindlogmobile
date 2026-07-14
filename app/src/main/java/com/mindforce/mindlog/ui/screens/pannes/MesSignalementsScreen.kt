@@ -78,7 +78,7 @@ fun MesSignalementsScreen(
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (state.showOnlyActive) "🕘 Historique" else "🔧 Pannes actives",
+                    text = if (state.showOnlyActive) "Historique" else "Pannes actives",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
