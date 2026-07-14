@@ -6,9 +6,9 @@ import com.mindforce.mindlog.data.remote.NetworkUtils
 
 class DashboardRepository(private val api: ApiService) {
 
-    suspend fun getStats(): ApiResult<DashboardStats> {
+    suspend fun getStats(userId: Long): ApiResult<DashboardStats> {
         return try {
-            val response = api.getDashboardStats()
+            val response = api.getDashboardStats(userId)
             if (response.isSuccessful && response.body() != null) {
                 ApiResult.Success(response.body()!!)
             } else {

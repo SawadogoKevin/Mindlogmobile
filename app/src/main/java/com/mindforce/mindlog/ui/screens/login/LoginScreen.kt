@@ -3,6 +3,7 @@ package com.mindforce.mindlog.ui.screens.login
 import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -41,9 +42,14 @@ fun LoginScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
+            modifier = Modifier.fillMaxSize(),
             factory = { context ->
                 val contextWrapper = ContextThemeWrapper(context, R.style.Theme_MindForce)
                 val view = LayoutInflater.from(contextWrapper).inflate(R.layout.fragment_login, null)
+                view.layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
                 
                 // Initialisation des vues et des listeners
                 val emailInput = view.findViewById<TextInputEditText>(R.id.emailInput)

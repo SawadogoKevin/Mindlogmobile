@@ -21,8 +21,8 @@ interface ApiService {
 
     // ===== DASHBOARD =====
 
-    @GET("api/dashboard/stats")
-    suspend fun getDashboardStats(): Response<DashboardStats>
+    @GET("api/dashboard/chef/{userId}")
+    suspend fun getDashboardStats(@Path("userId") userId: Long): Response<DashboardStats>
 
     // ===== MATERIELS (Chef de Département) =====
 

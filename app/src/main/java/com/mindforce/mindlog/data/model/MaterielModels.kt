@@ -5,8 +5,10 @@ import com.google.gson.annotations.SerializedName
 enum class EtatMateriel {
     @SerializedName("BON") BON,
     @SerializedName("USAGE") USAGE,
+    @SerializedName("EN_PANNE") EN_PANNE,
+    @SerializedName("MAINTENANCE") MAINTENANCE,
     @SerializedName("DECLASSE") DECLASSE,
-    @SerializedName("EN_PANNE") EN_PANNE
+    @SerializedName("HORS_SERVICE") HORS_SERVICE
 }
 
 data class MaterielResponse(
@@ -17,8 +19,9 @@ data class MaterielResponse(
     val dateAcquisition: String?,
     val dateDebutUtilisation: String?,
     val fournisseur: String?,
-    @SerializedName("etat_actuel")
+    @SerializedName("etatActuel")
     val etatActuel: EtatMateriel?,
+    val disponible: Boolean,
     val typeMaterielId: Long?,
     val typeMaterielNom: String?,
     val dateCreation: String?
@@ -29,8 +32,14 @@ data class AffectationMaterielResponse(
     val materielId: String,
     val materielMarque: String?,
     val materielModele: String?,
-    @SerializedName("etat_actuel")
-    val materielEtatActuel: EtatMateriel?,
+    @SerializedName("materielEtat")
+    val materielEtat: EtatMateriel?,
+    @SerializedName("etat")
+    val etat: EtatMateriel?,
+    @SerializedName("etatActuel")
+    val etatActuel: EtatMateriel?,
+    @SerializedName("materielDisponible")
+    val materielDisponible: Boolean,
     val typeAffectation: String?,
     val departementNom: String?,
     val active: Boolean

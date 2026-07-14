@@ -8,6 +8,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -74,15 +76,8 @@ fun MaterielsScreen(
                 shape = RoundedCornerShape(12.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Icon(
-                    Icons.Default.Inventory2, 
-                    contentDescription = null, 
-                    modifier = Modifier.size(18.dp),
-                    tint = Color.White
-                )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = if (state.showOnlyAvailable) "📦 Matériels indisponibles" else "✅ Afficher disponibles",
+                    text = if (state.showOnlyAvailable) "Matériels indisponibles" else "Afficher disponibles",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
@@ -97,7 +92,7 @@ fun MaterielsScreen(
                 Text(state.errorMessage!!, color = Color.Red)
             }
         } else if (state.filteredMateriels.isEmpty()) {
-            EmptyState(message = if (state.showOnlyAvailable) "Aucun matériel disponible" else "Tout le matériel est disponible !")
+            EmptyState(message = if (state.showOnlyAvailable) "Aucun matériel disponible" else "Tout le matériel est opérationnel !")
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -162,7 +157,7 @@ fun ModernMaterielCard(item: AffectationMaterielResponse, onClick: (String) -> U
                 }
             }
             
-            EtatBadge(item.materielEtatActuel)
+            EtatBadge(item.materielEtat ?: item.etat ?: item.etatActuel)
         }
     }
 }
@@ -173,7 +168,9 @@ fun EtatBadge(etat: EtatMateriel?) {
         EtatMateriel.BON -> "BON" to StateBon
         EtatMateriel.USAGE -> "USAGÉ" to StateUsage
         EtatMateriel.EN_PANNE -> "PANNE" to StateEnPanne
+        EtatMateriel.MAINTENANCE -> "MAINT" to StateEnPanne
         EtatMateriel.DECLASSE -> "OUT" to StateDeclasse
+        EtatMateriel.HORS_SERVICE -> "HS" to StateDeclasse
         null -> "INCONNU" to Color.Gray
     }
 

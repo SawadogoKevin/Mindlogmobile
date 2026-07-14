@@ -81,7 +81,9 @@ fun MaterielDetailScreen(
                         EtatMateriel.BON -> "Bon" to StateBon
                         EtatMateriel.USAGE -> "Usagé" to StateUsage
                         EtatMateriel.EN_PANNE -> "En panne" to StateEnPanne
+                        EtatMateriel.MAINTENANCE -> "Maintenance" to StateEnPanne
                         EtatMateriel.DECLASSE -> "Déclassé" to StateDeclasse
+                        EtatMateriel.HORS_SERVICE -> "Hors service" to StateDeclasse
                         null -> "Inconnu" to android.graphics.Color.GRAY
                     }
                     val badgeColor = if (color is androidx.compose.ui.graphics.Color) {
@@ -99,7 +101,7 @@ fun MaterielDetailScreen(
                     etatBadge.backgroundTintList = ColorStateList.valueOf(badgeColor).withAlpha(30)
                 }
 
-                fab?.visibility = if (materiel.etatActuel != null && materiel.etatActuel != EtatMateriel.DECLASSE) View.VISIBLE else View.GONE
+                fab?.visibility = if (materiel.etatActuel == EtatMateriel.BON || materiel.etatActuel == EtatMateriel.USAGE) View.VISIBLE else View.GONE
             }
 
             val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewHistory)

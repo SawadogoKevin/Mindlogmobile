@@ -86,6 +86,23 @@ fun HomeScreen(
                     fontWeight = FontWeight.Bold,
                     color = MindBlack
                 )
+
+                val dashboardError = state.errorMessage
+                if (!dashboardError.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = MindRed.copy(alpha = 0.1f))
+                    ) {
+                        Text(
+                            text = dashboardError,
+                            color = MindRed,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                }
                 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -249,7 +266,7 @@ fun EtatSmallCard(label: String, count: Int, color: Color, modifier: Modifier = 
         Row(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(text = label, fontSize = 14.sp, fontWeight = FontWeight.Bold, color = color)
             Text(text = count.toString(), fontSize = 18.sp, fontWeight = FontWeight.ExtraBold, color = color)

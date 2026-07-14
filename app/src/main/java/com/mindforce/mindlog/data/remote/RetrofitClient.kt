@@ -16,7 +16,7 @@ object RetrofitClient {
      *   (ex: "http://192.168.1.50:8080/")
      * - Backend déployé -> mettre l'URL publique (https://...)
      */
-    const val BASE_URL = "http://192.168.43.181:8080/"
+    const val BASE_URL = "http://10.17.143.231:8080/"
 
     fun create(sessionManager: SessionManager): ApiService {
         val logging = HttpLoggingInterceptor().apply {

@@ -47,11 +47,22 @@ class HomeViewModel(
     fun refresh() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
-            
+
+            val userId = sessionManager.getUserId()
+            if (userId == null) {
+                _uiState.value = _uiState.value.copy(isLoading = false)
+                return@launch
+            }
+
             // Stats
-            val statsResult = dashboardRepository.getStats()
-            if (statsResult is ApiResult.Success) {
-                _uiState.value = _uiState.value.copy(stats = statsResult.data)
+            val statsResult = dashboardRepository.getStats(userId)
+            when (statsResult) {
+                is ApiResult.Success -> {
+                    _uiState.value = _uiState.value.copy(stats = statsResult.data, errorMessage = null)
+                }
+                is ApiResult.Error -> {
+                    _uiState.value = _uiState.value.copy(errorMessage = statsResult.message)
+                }
             }
             
             // Untreated Pannes (SIGNALE only)

@@ -63,10 +63,30 @@ class MaterielsViewModel(
 
     private fun applyFilter() {
         val state = _uiState.value
+        val all = state.allMateriels
+        
         val filtered = if (state.showOnlyAvailable) {
-            state.allMateriels.filter { it.materielEtatActuel == EtatMateriel.BON }
+            // "En bon état" : On affiche ce qui n'est pas une panne connue
+            all.filter { item ->
+                val etat = item.materielEtat ?: item.etat ?: item.etatActuel
+                etat != EtatMateriel.EN_PANNE && 
+                etat != EtatMateriel.MAINTENANCE && 
+                etat != EtatMateriel.DECLASSE && 
+                etat != EtatMateriel.HORS_SERVICE
+            }
         } else {
-            state.allMateriels.filter { it.materielEtatActuel != EtatMateriel.BON }
+            // "Indisponibles" : On affiche uniquement ce qui est en panne, OU ce qui est marqué indisponible si l'état est inconnu
+            all.filter { item ->
+                val etat = item.materielEtat ?: item.etat ?: item.etatActuel
+                if (etat != null) {
+                    etat == EtatMateriel.EN_PANNE || 
+                    etat == EtatMateriel.MAINTENANCE || 
+                    etat == EtatMateriel.DECLASSE || 
+                    etat == EtatMateriel.HORS_SERVICE
+                } else {
+                    !item.materielDisponible
+                }
+            }
         }
         _uiState.value = _uiState.value.copy(filteredMateriels = filtered)
     }
