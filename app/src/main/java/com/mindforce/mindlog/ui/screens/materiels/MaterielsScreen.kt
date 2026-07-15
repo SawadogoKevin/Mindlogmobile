@@ -46,6 +46,10 @@ fun MaterielsScreen(
 
     val state by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
+
     Column(modifier = Modifier.fillMaxSize().background(MindWhite)) {
         MindForceTopBar(
             title = "Matériels",
@@ -146,9 +150,16 @@ fun ModernMaterielCard(item: AffectationMaterielResponse, onClick: (String) -> U
                     color = Color.Gray,
                     modifier = Modifier.padding(top = 2.dp)
                 )
-                if (!item.departementNom.isNullOrBlank()) {
+                val affectationLabel = when (item.typeAffectation?.uppercase()) {
+                    "INDIVIDUELLE", "INDIVIDUEL" -> {
+                        "${item.personnelNom ?: ""} ${item.personnelPrenom ?: ""}".trim()
+                    }
+                    else -> item.departementNom
+                }
+
+                if (!affectationLabel.isNullOrBlank()) {
                     Text(
-                        text = item.departementNom,
+                        text = affectationLabel,
                         style = MaterialTheme.typography.labelSmall,
                         color = MindOrangeDark,
                         fontWeight = FontWeight.SemiBold,

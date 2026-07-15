@@ -43,6 +43,10 @@ fun HomeScreen(
 
     val state by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
+
     Scaffold(
         containerColor = MindWhite,
         topBar = {

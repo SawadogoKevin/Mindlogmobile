@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.mindforce.mindlog.data.local.SessionManager
+import com.mindforce.mindlog.data.repository.DashboardRepository
 import com.mindforce.mindlog.ui.components.MindForceTopBar
 import com.mindforce.mindlog.ui.components.DangerButton
 import com.mindforce.mindlog.ui.theme.MindBlack
@@ -32,13 +33,14 @@ import com.mindforce.mindlog.ui.theme.MindWhite
 @Composable
 fun ProfilScreen(
     sessionManager: SessionManager,
+    dashboardRepository: DashboardRepository,
     onLogout: () -> Unit,
     onBack: (() -> Unit)? = null
 ) {
     val viewModel: ProfilViewModel = viewModel(factory = object : androidx.lifecycle.ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
-            return ProfilViewModel(sessionManager) as T
+            return ProfilViewModel(sessionManager, dashboardRepository) as T
         }
     })
     val state by viewModel.uiState.collectAsState()

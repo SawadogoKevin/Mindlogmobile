@@ -42,6 +42,10 @@ fun PersonnelsScreen(
     })
     val state by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
+
     Column(modifier = Modifier.fillMaxSize().background(MindWhite)) {
         MindForceTopBar(
             title = "Personnels",

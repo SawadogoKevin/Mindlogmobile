@@ -73,6 +73,12 @@ class SessionManager(private val context: Context) {
         }
     }
 
+    suspend fun saveDepartementNom(nom: String) {
+        context.dataStore.edit { prefs ->
+            prefs[Keys.DEPARTEMENT_NOM] = nom
+        }
+    }
+
     suspend fun getEmail(): String? = context.dataStore.data.first()[Keys.EMAIL]
     suspend fun getRole(): String? = context.dataStore.data.first()[Keys.ROLE]
     suspend fun getNom(): String? = context.dataStore.data.first()[Keys.NOM]

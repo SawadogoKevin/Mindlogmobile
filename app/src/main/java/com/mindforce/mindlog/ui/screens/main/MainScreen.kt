@@ -118,6 +118,7 @@ fun MainScreen(
                 composable("profile") {
                     ProfilScreen(
                         sessionManager = app.sessionManager,
+                        dashboardRepository = app.dashboardRepository,
                         onLogout = onLogout,
                         onBack = { navController.popBackStack() }
                     )

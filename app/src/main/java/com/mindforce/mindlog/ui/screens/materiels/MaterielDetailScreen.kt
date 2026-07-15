@@ -39,6 +39,10 @@ fun MaterielDetailScreen(
 
     val state by viewModel.uiState.collectAsState()
 
+    LaunchedEffect(Unit) {
+        viewModel.refresh()
+    }
+
     AndroidView(
         factory = { context ->
             val contextWrapper = ContextThemeWrapper(context, R.style.Theme_MindForce)

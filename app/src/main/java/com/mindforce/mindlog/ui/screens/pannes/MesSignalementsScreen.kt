@@ -70,13 +70,6 @@ fun MesSignalementsScreen(
                 shape = RoundedCornerShape(12.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Icon(
-                    Icons.Default.History, 
-                    contentDescription = null, 
-                    modifier = Modifier.size(18.dp),
-                    tint = Color.White
-                )
-                Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = if (state.showOnlyActive) "Historique" else "Pannes actives",
                     fontSize = 12.sp,

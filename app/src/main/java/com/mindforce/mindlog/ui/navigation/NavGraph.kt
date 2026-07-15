@@ -17,6 +17,7 @@ import com.mindforce.mindlog.ui.screens.materiels.MaterielDetailScreen
 import com.mindforce.mindlog.ui.screens.pannes.SignalerPanneScreen
 import kotlinx.coroutines.flow.first
 import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 
 private object Routes {
     const val LOGIN = "login"
@@ -55,11 +56,15 @@ fun MindForceNavGraph(app: MindForceApp) {
         }
 
         composable(Routes.MAIN) {
+            val scope = rememberCoroutineScope()
             MainScreen(
                 app = app,
                 onLogout = {
-                    navController.navigate(Routes.LOGIN) {
-                        popUpTo(0) { inclusive = true }
+                    scope.launch {
+                        app.authRepository.logout()
+                        navController.navigate(Routes.LOGIN) {
+                            popUpTo(0) { inclusive = true }
+                        }
                     }
                 },
                 onMaterielClick = { id -> navController.navigate(Routes.materielDetail(id)) }

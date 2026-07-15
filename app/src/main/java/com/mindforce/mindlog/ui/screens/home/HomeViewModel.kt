@@ -58,7 +58,20 @@ class HomeViewModel(
             val statsResult = dashboardRepository.getStats(userId)
             when (statsResult) {
                 is ApiResult.Success -> {
+<<<<<<< HEAD
                     _uiState.value = _uiState.value.copy(stats = statsResult.data, errorMessage = null)
+=======
+                    val stats = statsResult.data
+                    _uiState.value = _uiState.value.copy(stats = stats, errorMessage = null)
+                    
+                    // Sauvegarde du nom du département s'il n'était pas déjà là
+                    stats.nomDepartement?.let { deptName ->
+                        if (deptName.isNotBlank()) {
+                            sessionManager.saveDepartementNom(deptName)
+                            _uiState.value = _uiState.value.copy(departementNom = deptName)
+                        }
+                    }
+>>>>>>> 498088d (Correction affichage affectation fix dashboard)
                 }
                 is ApiResult.Error -> {
                     _uiState.value = _uiState.value.copy(errorMessage = statsResult.message)

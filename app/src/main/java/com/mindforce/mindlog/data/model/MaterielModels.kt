@@ -42,5 +42,7 @@ data class AffectationMaterielResponse(
     val materielDisponible: Boolean,
     val typeAffectation: String?,
     val departementNom: String?,
+    val personnelNom: String?,
+    val personnelPrenom: String?,
     val active: Boolean
 )
