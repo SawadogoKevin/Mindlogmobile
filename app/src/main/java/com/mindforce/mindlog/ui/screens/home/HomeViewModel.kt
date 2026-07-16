@@ -58,9 +58,6 @@ class HomeViewModel(
             val statsResult = dashboardRepository.getStats(userId)
             when (statsResult) {
                 is ApiResult.Success -> {
-<<<<<<< HEAD
-                    _uiState.value = _uiState.value.copy(stats = statsResult.data, errorMessage = null)
-=======
                     val stats = statsResult.data
                     _uiState.value = _uiState.value.copy(stats = stats, errorMessage = null)
                     
@@ -71,7 +68,6 @@ class HomeViewModel(
                             _uiState.value = _uiState.value.copy(departementNom = deptName)
                         }
                     }
->>>>>>> 498088d (Correction affichage affectation fix dashboard)
                 }
                 is ApiResult.Error -> {
                     _uiState.value = _uiState.value.copy(errorMessage = statsResult.message)

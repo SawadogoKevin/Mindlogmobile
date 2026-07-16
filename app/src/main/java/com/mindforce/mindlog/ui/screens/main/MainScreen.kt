@@ -119,6 +119,7 @@ fun MainScreen(
                     ProfilScreen(
                         sessionManager = app.sessionManager,
                         dashboardRepository = app.dashboardRepository,
+                        userRepository = app.userRepository,
                         onLogout = onLogout,
                         onBack = { navController.popBackStack() }
                     )

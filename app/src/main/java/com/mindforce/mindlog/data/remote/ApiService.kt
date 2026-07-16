@@ -58,4 +58,15 @@ interface ApiService {
 
     @GET("api/pannes/materiel/{materielId}")
     suspend fun getHistoriquePannes(@Path("materielId") materielId: String): Response<List<PanneResponse>>
+
+    // ===== USER PROFILE =====
+
+    @GET("api/users/me")
+    suspend fun getMyProfile(): Response<UserResponse>
+
+    @PUT("api/users/me")
+    suspend fun updateMyProfile(@Body request: UpdateProfileRequest): Response<UserResponse>
+
+    @PUT("api/users/me/password")
+    suspend fun updateMyPassword(@Body request: UpdatePasswordRequest): Response<String>
 }
